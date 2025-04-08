@@ -27,15 +27,7 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "YOUR_TELEGRAM_CHAT_ID")
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 NIFTY50_TICKER = "^NSEI"  # Yahoo Finance ticker for Nifty 50
 
-# Initialize FastAPI app
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Initialize Telegram bot
-bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
-
-# Create necessary directories
+# Create necessary directories first, before initializing FastAPI
 os.makedirs("static", exist_ok=True)
 os.makedirs("templates", exist_ok=True)
 
@@ -167,6 +159,50 @@ with open("templates/index.html", "w") as f:
 </body>
 </html>
     """)
+
+# Create a placeholder chart to prevent errors on initial load
+def create_placeholder_charts():
+    """Create placeholder charts to avoid errors on initial load"""
+    import matplotlib.pyplot as plt
+    
+    # Placeholder price chart
+    plt.figure(figsize=(10, 6))
+    plt.title('Nifty50 Price Chart - Loading data...')
+    plt.xlabel('Date')
+    plt.ylabel('Price')
+    plt.grid(True)
+    plt.savefig("static/price_chart.png")
+    plt.close()
+    
+    # Placeholder RSI chart
+    plt.figure(figsize=(10, 5))
+    plt.title('RSI Analysis - Loading data...')
+    plt.xlabel('Date')
+    plt.ylabel('RSI Value')
+    plt.grid(True)
+    plt.axhline(y=70, color='r', linestyle='--')
+    plt.axhline(y=30, color='g', linestyle='--')
+    plt.savefig("static/rsi_chart.png")
+    plt.close()
+
+# Create placeholder charts
+try:
+    create_placeholder_charts()
+except Exception as e:
+    print(f"Error creating placeholder charts: {e}")
+    # Create empty files to prevent 404 errors
+    with open("static/price_chart.png", "w") as f:
+        pass
+    with open("static/rsi_chart.png", "w") as f:
+        pass
+
+# Initialize FastAPI app AFTER directories are created
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Initialize Telegram bot
+bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 # Global variables to store the latest data
 latest_data = {
