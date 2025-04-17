@@ -1,6 +1,16 @@
 # maincode.yaml
 # Basic configuration file
 
+# Event triggers
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight UTC
+  workflow_dispatch:     # Manual trigger
+
 # Application settings
 application:
   name: MainCode
@@ -59,3 +69,20 @@ cache:
   host: cache.example.com
   port: 6379
   ttl: 3600
+
+# Actions to run when triggers fire
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup environment
+        run: |
+          npm install
+          npm run setup
+      - name: Run tests
+        run: npm test
+      - name: Build application
+        run: npm run build
